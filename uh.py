@@ -27,12 +27,12 @@ def convert_to_dict(csv_string: str):
         for j, item in enumerate(row):
             if j == 0:
                 continue
-            print(i, j, item)
             tuple_dict[(int(i), int(j))] = int(item)
     return tuple_dict
 
 
 ## Una tabla que indica las horas específicas que ocupa casa seccion, si la sección usa la hora se marca como 1, sino es 0
+## Se usa una funcion auxiliar para que la tabla sea facil de leer, y sea entendible por Pyomo
 seccion_usa_hora = convert_to_dict("""
 @,c1,c2,c3,c4,c5
 h1,0,0,1,0,0
@@ -50,6 +50,7 @@ h10,0,0,0,1,0
 
 ## Tabla que indica si una sección pertenece a una materia, 
 ## si sí entonces se marca con 1, si no es de esa materia entonces es 0
+## Se usa una funcion auxiliar para que la tabla sea facil de leer, y sea entendible por Pyomo
 seccion_pertenece_clase = convert_to_dict("""
 @@,c1,c2,c3,c4,c5
 s1,0,0,0,1,1
@@ -78,27 +79,22 @@ MINIMO_CREDITOS = 8
 ## Una variable que indica el promedio del rating de todas las clases escogidas
 model.r = Var()
 
+## Regla objetivo a implementar: Maximizar lo mas posible el puntaje de las secciones elegidas
 def objective_rule(model: ConcreteModel):
     return sum((model.el[i] * model.rat[i]) for i in model.c)
-    pass
 
-
-##  el total de creditos de las clases escogidas debe ser menor al LIMITE_CREDITOS
+##  El total de creditos de las clases escogidas debe ser menor al LIMITE_CREDITOS
 def limit_credits_rule(model: ConcreteModel):    
     return sum((model.cr[i]*model.el[i]) for i in model.c) <= LIMITE_CREDITOS
 
-
-
-## indica que el total de cr ́editos de las clases escogidas debe ser mayor a MINIMO_CREDITOS
+## Indica que el total de cr ́editos de las clases escogidas debe ser mayor a MINIMO_CREDITOS
 def set_minimum_credits_rule(model: ConcreteModel):
     return sum((model.cr[i]*model.el[i]) for i in model.c) >= MINIMO_CREDITOS
 
 
-## indica que dos cursos escogidos no pueden ser de la misma seccion
+## Indica que dos cursos escogidos no pueden ser de la misma seccion
 def allow_one_instance_of_section_rule(model: ConcreteModel, j):
     return sum((model.el[i] * model.p[j, i]) for i in model.c) >= 1
-
-
 
 model.objective_rule = Objective(rule=objective_rule, sense=maximize)
 model.limit_credits_rule = Constraint(rule=limit_credits_rule)
