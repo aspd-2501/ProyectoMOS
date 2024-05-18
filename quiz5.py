@@ -56,11 +56,11 @@ h10,0,0,0,0,1
 dia_semana_hora = convert_to_dict("""
 @,d1,d2,d3,d4,d5,d6
 h1,1,0,0,0,0,0
-h2,1,0,0,0,0,0
+h2,0,1,0,0,0,0
 h3,0,1,0,0,0,0
 h4,0,0,1,0,0,0
-h5,0,1,0,0,0,0
-h6,0,1,0,0,0,0
+h5,0,0,0,0,0,1
+h6,0,0,0,0,1,0
 h7,0,0,0,1,0,0
 h8,0,0,0,0,1,0
 h9,0,1,0,0,0,0
@@ -125,11 +125,31 @@ model.allow_one_instance_of_section = Constraint(model.s, rule=allow_one_instanc
 model.set_weekday_number_hours_rule = Constraint(model.d, rule=set_weekday_number_hours_rule)
 
 solver = SolverFactory("glpk")
-solver.solve(model, tee=True)
-
-print("Materias seleccionadas:")
+solver.solve(model)
 
 print("Mi maximas horas en un solo dia es:", value(model.y))
+print("Materias seleccionadas:")
+
+## Si, la logica de impresion pudo ser mas simple
+#  Pero asi se imprime mas legible en la consola, asi que...
+#  :P
+
+strings_to_print = []
 for i in model.el:
     if round(value(model.el[i]), 6) == 1:
-        print(f"Seccion {i} ha sido seleccionado con un rating de {model.rat[i]} y creditos {model.cr[i]}")
+        if len(strings_to_print) != 0:
+            strings_to_print[-1] = strings_to_print[-1].replace("├","└")
+        strings_to_print.append(f"Seccion {i} ha sido seleccionado con un rating de {model.rat[i]} y creditos {model.cr[i]}")
+        for h in model.h:
+            if (model.u[h, i] == 1):
+                weekday = 0
+                for d in model.d:
+                    if model.sm[h, d] == 1:
+                        weekday = d
+                strings_to_print.append(f"├── Hora {h} elegida el dia {weekday}")
+
+if len(strings_to_print) != 0:
+    strings_to_print[-1] = strings_to_print[-1].replace("├","└")
+
+for log in strings_to_print:
+    print(log)
