@@ -11,15 +11,19 @@ import csv
 
 model = ConcreteModel()
 
+## Variable
 ## La diferentes secciones que se pueden tomar de un curso
 model.c = RangeSet(1, 5)
 
+## Variable
 ## Las horas que puede pcupar cada sección
 model.h = RangeSet(1, 10)
 
+## Variable
 ## Materias que se pueden meter
 model.s = RangeSet(1, 3)
 
+## Static
 ## Dia de la semana (1=lunes,6=sabado)
 model.d = RangeSet(1, 6)
 
@@ -68,6 +72,7 @@ h10,1,0,0,0,0,0
 """)
 
 ## Tabla que indica si una sección pertenece a una materia, 
+## S es la materia, C es cada sección 
 ## si sí entonces se marca con 1, si no es de esa materia entonces es 0
 ## Se usa una funcion auxiliar para que la tabla sea facil de leer, y sea entendible por Pyomo
 seccion_pertenece_clase = convert_to_dict("""
@@ -98,6 +103,12 @@ LIMITE_CREDITOS = 10
 
 ## ïndica el mínimo de créditos que quiere meter el estudiante en el semestre
 MINIMO_CREDITOS = 8
+
+
+
+
+
+
 
 ## Regla objetivo a implementar: Maximizar lo mas posible el puntaje de las secciones elegidas
 def objective_rule(model: ConcreteModel):
