@@ -13,15 +13,15 @@ model = ConcreteModel()
 
 ## Variable
 ## La diferentes secciones que se pueden tomar de un curso
-model.c = RangeSet(1, 5)
+model.c = RangeSet(1, 15)
 
 ## Variable
 ## Las horas que puede pcupar cada sección
-model.h = RangeSet(1, 10)
+model.h = RangeSet(1, 12)
 
 ## Variable
 ## Materias que se pueden meter
-model.s = RangeSet(1, 3)
+model.s = RangeSet(1, 5)
 
 ## Static
 ## Dia de la semana (1=lunes,6=sabado)
@@ -44,19 +44,23 @@ def convert_to_dict(csv_string: str):
 ## Una tabla que indica las horas específicas que ocupa casa seccion, si la sección usa la hora se marca como 1, sino es 0
 ## Se usa una funcion auxiliar para que la tabla sea facil de leer, y sea entendible por Pyomo
 seccion_usa_hora = convert_to_dict("""
-@,c1,c2,c3,c4,c5
-h1,1,0,0,0,0
-h2,1,0,0,0,0
-h3,0,1,0,0,0
-h4,0,1,0,0,0
-h5,0,0,1,0,0
-h6,0,0,1,0,0
-h7,0,0,0,1,0
-h8,0,0,0,1,0
-h9,0,0,0,0,1
-h10,0,0,0,0,1
+@,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15
+h1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0
+h2,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1
+h3,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0
+h4,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0
+h5,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0
+h6,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0
+h7,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0
+h8,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0
+h9,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0
+h10,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1
+h11,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0
+h12,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0
 """)
 
+
+## Tabla que indica que hora es en cada día de la semana
 dia_semana_hora = convert_to_dict("""
 @,d1,d2,d3,d4,d5,d6
 h1,1,0,0,0,0,0
@@ -69,6 +73,8 @@ h7,0,0,0,1,0,0
 h8,0,0,0,0,1,0
 h9,0,1,0,0,0,0
 h10,1,0,0,0,0,0
+h11,0,0,0,0,0,1
+h12,0,0,0,1,0,0
 """)
 
 ## Tabla que indica si una sección pertenece a una materia, 
@@ -76,10 +82,12 @@ h10,1,0,0,0,0,0
 ## si sí entonces se marca con 1, si no es de esa materia entonces es 0
 ## Se usa una funcion auxiliar para que la tabla sea facil de leer, y sea entendible por Pyomo
 seccion_pertenece_clase = convert_to_dict("""
-@@,c1,c2,c3,c4,c5
-s1,0,0,0,1,1
-s2,1,1,0,0,0
-s3,0,0,1,0,0
+@@,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15
+s1,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0
+s2,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0
+s3,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1
+s4,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0
+s5,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0
 """)
 
 model.u = Param(model.h, model.c, initialize=seccion_usa_hora)
@@ -87,10 +95,10 @@ model.p = Param(model.s, model.c, initialize=seccion_pertenece_clase)
 model.sm = Param(model.h, model.d, initialize=dia_semana_hora)
 
 ## indíca en numero de créditos de cada sección 
-model.cr = Param(model.c, initialize={1: 3, 2: 3, 3: 4, 4: 2, 5: 2})
+model.cr = Param(model.c, initialize={1: 3, 2: 3, 3: 4, 4: 2, 5: 2, 6: 2, 7: 3, 8: 3, 9: 4, 10: 4, 11: 2, 12: 3, 13: 4, 14: 3, 15: 4})
 
 ## Indica el rating del profesor de cada sección
-model.rat = Param(model.c, initialize={1: 2.5, 2: 4, 3: 3.5, 4: 5, 5: 2})
+model.rat = Param(model.c, initialize={1: 2.5, 2: 4, 3: 3.5, 4: 1, 5: 2, 6: 5, 7: 1, 8: 4.5, 9: 5, 10: 2.5, 11: 3.5, 12: 3, 13: 4.5, 14: 1, 15: 2})
 
 ## Es una variable que indica si se escogió alguna sección de una clase
 model.el = Var(model.c, domain=Binary)
@@ -99,10 +107,10 @@ model.el = Var(model.c, domain=Binary)
 model.y = Var(domain=PositiveIntegers)
 
 ## Indica el límite de créditos que puede ver el estudiante en el semestre
-LIMITE_CREDITOS = 10
+LIMITE_CREDITOS = 16
 
 ## ïndica el mínimo de créditos que quiere meter el estudiante en el semestre
-MINIMO_CREDITOS = 8
+MINIMO_CREDITOS = 12
 
 
 
